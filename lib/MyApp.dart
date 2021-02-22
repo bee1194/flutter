@@ -1,92 +1,94 @@
+import 'package:app/transaction.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class MyApp extends StatelessWidget {
-  Widget buildBtn(IconData icon, String title) {
-    final Color tintColor = Colors.blue;
-    return new Column(
-      children: [
-        new Icon(
-          icon,
-          color: tintColor,
-        ),
-        new Container(
-          child: new Text(
-            title,
-            style: new TextStyle(color: Colors.blue),
-          ),
-        ),
-      ],
-    );
+//You can define your own Widget
+// ignore: must_be_immutable
+class MyApp extends StatefulWidget {
+  //StatefulWidget has internal "state"
+  String name;
+  int age;
+  MyApp({this.name, this.age}); //name, age is state ? No !, it is properties
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    return _MyAppState();
+  }
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  Transaction transaction = Transaction(content: '', amount: 0.0);
+  List<Transaction> _transactions = List<Transaction>();
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final _contentController = TextEditingController();
+  final _amountController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    print('Init state');
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    print('Dispose here');
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "",
-      home: new Scaffold(
-          appBar: new AppBar(
-            title: new Text("Flutter App"),
-            centerTitle: true,
-          ),
-          body: new ListView(
-            children: <Widget>[
-              new Image.asset('images/tutorialChannel.png', fit: BoxFit.cover),
-              new Container(
-                padding: const EdgeInsets.all(10.0),
-                child: new Row(
-                  children: <Widget>[
-                    new Expanded(
-                      child: new Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          new Container(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: new Text(
-                              "Programming tutorials Channel",
-                              style: new TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          new Text(
-                            "This channel contains tutorial videos in Flutter",
-                            style: new TextStyle(color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                    ),
-                    new Container(
-                      child: new Row(
-                        children: <Widget>[
-                          new Icon(
-                            Icons.favorite,
-                            color: Colors.red,
-                          ),
-                          new Text("100")
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              new Container(  
-                child: new Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    buildBtn(Icons.home, "Home"),
-                    buildBtn(Icons.arrow_back, "Back"),
-                    buildBtn(Icons.arrow_forward, "Next"),
-                    buildBtn(Icons.share, "Share"),
-                  ],
-                ),
-              ),
-              new Container(
-                padding: EdgeInsets.all(20.0),
-                child: new Text(
-                    "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                    textAlign: TextAlign.justify,
-                    ),
-              ),
-            ],
-          )),
-    );
+    return new MaterialApp(
+        title: "This is a StatefulWidget",
+        home: new Scaffold(
+          key: this._scaffoldKey,
+          body: new SafeArea(
+              minimum: EdgeInsets.only(left: 20, right: 20),
+              child: new Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  new TextField(
+                    decoration: new InputDecoration(labelText: "Content"),
+                    controller: this._contentController,
+                    onChanged: (text) {
+                      this.setState(() {
+                        this.transaction.content = text;
+                      });
+                    },
+                  ),
+                  new TextField(
+                    decoration: new InputDecoration(labelText: "Amount(money)"),
+                    controller: this._amountController,
+                    onChanged: (text) {
+                      this.setState(() {
+                        this.transaction.amount = double.tryParse(text) ?? 0.0;
+                      });
+                    },
+                  ),
+                  new FlatButton(
+                    child: new Text("Insert Transaction"),
+                    color: Colors.pinkAccent,
+                    textColor: Colors.white,
+                    onPressed: () {
+                      this.setState(() {
+                        this._transactions.add(this.transaction);
+                        this.transaction =
+                            Transaction(content: '', amount: 0.0);
+                        this._contentController.text = '';
+                        this._amountController.text = '';
+                        
+                      });
+                      this._scaffoldKey.currentState.showSnackBar(new SnackBar(
+                            content: new Text("Transaction list: " +
+                                this._transactions.toString()),
+                            duration: Duration(seconds: 3),
+                          ));
+                    },
+                  ),
+                ],
+              )),
+        ));
   }
 }
